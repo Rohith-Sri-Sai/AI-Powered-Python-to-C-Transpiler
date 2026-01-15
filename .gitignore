@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+env/
+
+# Secrets (Critical)
+.env
+
+# Python cache & build files
+__pycache__/
+*.pyc
+dist/
+build/
+*.egg-info/
+
+# C++ Compiled files (Since you are generating C++)
+*.exe
+*.o
+*.out
+*.dll
+*.so
+
+# IDE/Editor settings
+.vscode/
+.idea/
