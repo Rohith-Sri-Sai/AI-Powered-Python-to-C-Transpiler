@@ -1,0 +1,7 @@
+
+matrix_mult.py,0.641984,0.285713,2.25x,Py:Success|C++:Success
+matrix_mult.py,0.565527,0.244898,2.31x,Py:Success|C++:Success
+matrix_mult.py,0.713169,0.207410,3.44x,Py:Success|C++:Success
+bfs.py,2.139055,0.164581,13.00x,Py:Success|C++:Success
+bfs.py,1.650634,0.151395,10.90x,Py:Success|C++:Success
+bfs.py,1.956508,0.129843,15.07x,Py:Success|C++:Success
