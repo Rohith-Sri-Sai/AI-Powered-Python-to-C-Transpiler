@@ -1,29 +1,42 @@
-using namespace std;
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
 
-int heavy_bfs(int target_depth) {
-    int count = 0;
-    for (int _ = 0; _ < 2000; ++_) {
-        queue<int> queue = {0};
-        vector<bool> visited(target_depth, false);
-        while (!queue.empty()) {
-            int node = queue.front();
-            queue.pop();
-            if (!visited[node]) {
-                visited[node] = true;
-                count++;
-                if (node + 1 < target_depth) {
-                    queue.push(node + 1);
-                }
-                if (node + 2 < target_depth) {
-                    queue.push(node + 2);
-                }
+std::vector<std::vector<int>> matrix_multiply(const std::vector<std::vector<int>>& a, const std::vector<std::vector<int>>& b) {
+    int n = a.size();
+    std::vector<std::vector<int>> result(n, std::vector<int>(n, 0));
+
+    for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < n; ++k) {
+            int aik = a[i][k];
+            for (int j = 0; j < n; ++j) {
+                result[i][j] += aik * b[k][j];
             }
         }
     }
-    return count;
+
+    return result;
 }
 
 int main() {
-    cout << heavy_bfs(800) << endl;
+    int n = 100;
+    std::vector<std::vector<int>> a(n, std::vector<int>(n));
+    std::vector<std::vector<int>> b(n, std::vector<int>(n));
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            a[i][j] = i + j;
+            b[i][j] = i - j;
+        }
+    }
+
+    std::vector<std::vector<int>> result = matrix_multiply(a, b);
+    int sum_result = std::accumulate(result.begin(), result.end(), 0, [](int a, const std::vector<int>& row) {
+        return a + std::accumulate(row.begin(), row.end(), 0);
+    });
+
+    std::cout << sum_result << std::endl;
+
     return 0;
 }

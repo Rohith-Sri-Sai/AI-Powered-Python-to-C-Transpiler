@@ -1,6 +1,7 @@
 # Virtual Environment
 venv/
 env/
+.venv
 
 # Secrets (Critical)
 .env

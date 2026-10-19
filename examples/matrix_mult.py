@@ -1,20 +1,30 @@
+
 # examples/matrix_mult.py
-def count_primes(limit):
-    count = 0
-    for num in range(2, limit):
-        is_prime = True
-        for i in range(2, int(num ** 0.5) + 1):
-            if num % i == 0:
-                is_prime = False
-                break
-        if is_prime:
-            count += 1
-    return count
+
+def matrix_multiply(a, b):
+    n = len(a)
+    result = [[0] * n for _ in range(n)]
+
+    for i in range(n):
+        for k in range(n):
+            aik = a[i][k]
+            for j in range(n):
+                result[i][j] += aik * b[k][j]
+
+    return result
+
 
 def main():
-    # A heavy calculation that takes Python a second or two
-    result = count_primes(150000)
-    print(result)
+    n = 100
+
+    a = [[i + j for j in range(n)] for i in range(n)]
+    b = [[i - j for j in range(n)] for i in range(n)]
+
+    result = matrix_multiply(a, b)
+
+    # Deterministic output for correctness checking.
+    print(sum(map(sum, result)))
+
 
 if __name__ == "__main__":
     main()
