@@ -5,3 +5,6 @@ matrix_mult.py,0.713169,0.207410,3.44x,Py:Success|C++:Success
 bfs.py,2.139055,0.164581,13.00x,Py:Success|C++:Success
 bfs.py,1.650634,0.151395,10.90x,Py:Success|C++:Success
 bfs.py,1.956508,0.129843,15.07x,Py:Success|C++:Success
+knapsack.py,4.984673,0.036558,136.35x,Py:Success|C++:Success
+matrix_mult.py,0.364651,0.046745,7.80x,Py:Success|C++:Success
+bfs.py,1.184415,0.021078,56.19x,Py:Success|C++:Success

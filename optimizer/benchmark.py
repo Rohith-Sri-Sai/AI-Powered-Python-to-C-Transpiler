@@ -1,5 +1,11 @@
+<<<<<<< HEAD
+=======
+"""Repeated, output-checked benchmarks with append-only CSV results."""
+>>>>>>> d65842a (new example and tests)
 import csv
+import math
 import os
+<<<<<<< HEAD
 import statistics
 import subprocess
 import sys
@@ -191,3 +197,78 @@ def run_benchmark(
     print(f"\nResults saved to {csv_path}")
 
     return speedup
+=======
+from pathlib import Path
+from statistics import median
+import subprocess
+import sys
+import time
+
+
+HEADER = ["File Name", "Python Time (s)", "C++ Time (s)", "Speedup", "Status"]
+
+
+def run_benchmark(executable_path, python_file_path, warmups=2, repetitions=10,
+                  timeout=60, csv_path=None):
+    """Return median Python/native speedup, or zero for failed or unequal runs.
+
+    Compare stdout bytes on every warmup and sample; exclude warmups from timing.
+    Stop after the first failed pair, retaining independent execution statuses.
+    Reject incompatible CSV headers before executing either program.
+    """
+    for name, value, minimum in (("warmups", warmups, 0), ("repetitions", repetitions, 1)):
+        if type(value) is not int or value < minimum:
+            raise ValueError(f"{name} must be an integer >= {minimum}")
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("timeout must be a finite positive number")
+    destination = Path(csv_path) if csv_path is not None else Path("results/benchmarks.csv")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # Validate the existing schema and append access before executing user code.
+    with destination.open("a+", newline="", encoding="utf-8") as stream:
+        stream.seek(0)
+        header = next(csv.reader(stream, skipinitialspace=True), None)
+        if header is not None and header not in (HEADER, ["Algorithm", *HEADER[1:]]):
+            raise ValueError(f"Incompatible benchmark CSV header: {header!r}")
+        if header is None:
+            csv.writer(stream).writerow(HEADER)
+        else:
+            with destination.open("rb") as raw:
+                raw.seek(-1, os.SEEK_END)
+                needs_newline = raw.read(1) not in (b"\n", b"\r")
+            if needs_newline:
+                stream.write("\n")
+    commands = [[sys.executable, os.fspath(python_file_path)], [os.fspath(executable_path)]]
+    statuses = ["Success", "Success"]
+    samples = [[], []]
+    for iteration in range(warmups + repetitions):
+        outputs = [None, None]
+        for index, command in enumerate(commands):
+            started = time.perf_counter()
+            try:
+                process = subprocess.run(command, capture_output=True, timeout=timeout)
+                elapsed = time.perf_counter() - started
+                statuses[index] = "Success" if process.returncode == 0 else "Error"
+                outputs[index] = process.stdout
+                if iteration >= warmups:
+                    samples[index].append(elapsed)
+            except subprocess.TimeoutExpired:
+                statuses[index] = "Timeout"
+            except FileNotFoundError:
+                statuses[index] = "Missing executable"
+            except OSError:
+                statuses[index] = "Execution error"
+        if statuses == ["Success", "Success"] and outputs[0] != outputs[1]:
+            statuses[1] = "Output mismatch"
+        if statuses != ["Success", "Success"]:
+            break
+    timings = [median(sample) if sample else 0.0 for sample in samples]
+    speedup = timings[0] / timings[1] if statuses == ["Success", "Success"] and timings[1] > 0 else 0.0
+    with destination.open("a", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow([os.path.basename(python_file_path),
+                         *(f"{value:.6f}" for value in timings),
+                         f"{speedup:.2f}x" if speedup else "",
+                         f"Py:{statuses[0]}|C++:{statuses[1]}"])
+    print(f"Benchmark: Py:{statuses[0]}|C++:{statuses[1]}; speedup={speedup:.2f}x")
+    return speedup
+>>>>>>> d65842a (new example and tests)

@@ -1,5 +1,6 @@
 import os
 import ast
+from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -10,27 +11,28 @@ from optimizer.feedback_loop import autonomous_compilation_loop
 from optimizer.benchmark import run_benchmark
 
 def get_ast(filepath):
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8-sig') as f:
         tree = ast.parse(f.read())
         return ast.dump(tree, indent=4)
 
-def run_pipeline(python_file, model_choice):
+def run_pipeline(python_file, model_choice, *, function_cases=None, warmups=2, repetitions=10):
+    """Generate, validate, then benchmark; never time a rejected candidate."""
+    python_file = Path(python_file).resolve()
     print(f"\n Starting Pipeline for {python_file} using [{model_choice.upper()}]...")
-    
     ast_data = get_ast(python_file)
-    os.makedirs("generated", exist_ok=True)
-    cpp_output_path = "generated/output.cpp"
-    exe_output_path = "generated/program"
-    
-    # Trigger the autonomous feedback loop
-    success = autonomous_compilation_loop(ast_data, cpp_output_path, exe_output_path, model_choice)
-
-    # If it survived the loop, run the benchmark
+    generated = Path("generated").resolve()
+    generated.mkdir(parents=True, exist_ok=True)
+    cpp_output_path = generated / "output.cpp"
+    exe_output_path = generated / ("program.exe" if os.name == "nt" else "program")
+    success = autonomous_compilation_loop(
+        ast_data, cpp_output_path, exe_output_path, model_choice,
+        python_file_path=python_file, function_cases=function_cases,
+    )
     if success:
         print("\n Running Benchmarks...")
-        run_benchmark(f"./{exe_output_path}", python_file)
-    else:
-        print("\n Pipeline failed to produce valid C++ code. Check generated/output.cpp to debug.")
+        return run_benchmark(exe_output_path, python_file, warmups=warmups, repetitions=repetitions)
+    print("\n Pipeline failed validation. Check generated/output.cpp and the feedback above.")
+    return 0.0
 
 if __name__ == "__main__":
     print("   AI-Powered Python to C++ Transpiler Engine")
